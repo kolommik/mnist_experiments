@@ -4,11 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_digits(*args: np.ndarray):
+def plot_digits(*args: np.ndarray) -> None:
     """Plots pictures of the digits of a datasets as visual array.
 
     Parameters:
-        *args: (np.ndarray) - tuple of np.ndarray(number_of_digits_to_show, height, width, 1)
+        *args: (np.ndarray) - tuple of np.ndarray
+        (number_of_digits_to_show, height, width, 1)
     """
     args = [x.squeeze() for x in args]
     rows_num = len(args)
@@ -26,7 +27,7 @@ def plot_digits_page(
     digits_arr: np.array,
     reshape_pixels: int = 28,
     title: str = "A selection from the 784-dimensional digits dataset",
-):
+) -> None:
     """Plots 10x10 pictures of the digits datasets array.
 
     Parameters:
