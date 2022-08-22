@@ -30,7 +30,8 @@ def plot_digits_page(
 ) -> None:
     """Plots 10x10 pictures of the digits datasets array.
 
-    Parameters:
+    Parameters
+    ----------
         * digits_arr: np.ndarray - array of digits(digits, height, width, 1)
         * reshape_pixels: int - reshape ratio, default 28x28
         * title: str - title for picture
@@ -44,6 +45,33 @@ def plot_digits_page(
         ax.axis("off")
     _ = fig.suptitle(title, fontsize=16)
     plt.show()
+
+
+# Гомотопия по прямой в пространстве объектов или в пространстве кодов
+def plot_homotopy(frm, to, n=10, decoder=None) -> None:
+    """Plots homotopy between 2 objects
+
+    Parameters
+    ----------
+        * frm - object FROM what we started
+        * to - object TO what we going
+        * n=10 - number of between objects
+        * decoder=None - decoder, if it's coded shapes
+    """
+    # разбиваем интервал от 0 до 1 на n шагов
+    z = np.zeros(([n] + list(frm.shape)))
+
+    # в цикле пробегаемся по этим шагам
+    # при этом делаем морфинг объекта frm к объекту to
+    # постепенно уменьшая вес объекта frm, 
+    # в то же время пропорционально увеличивая вес объекта to
+    # если указан декодер - декодируем полученные объекты
+    for i, t in enumerate(np.linspace(0.0, 1.0, n)):
+        z[i] = frm * (1 - t) + to * t
+    if decoder:
+        plot_digits(decoder.predict(z, batch_size=n))
+    else:
+        plot_digits(z)
 
 
 # a = np.random.rand(10, 28, 28,1) * 10
