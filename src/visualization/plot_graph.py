@@ -9,7 +9,7 @@ import matplotlib.image as mpimg
 from matplotlib import animation
 from scipy.stats import norm
 
-
+# Нарисовать цифры из нескольких массивов
 def plot_digits(*args: np.ndarray, show: bool = True) -> mpl.figure.Figure:
     """Plots pictures of the digits of a datasets as visual array.
 
@@ -45,6 +45,7 @@ def plot_digits(*args: np.ndarray, show: bool = True) -> mpl.figure.Figure:
     return fig
 
 
+# Нарисовать цифры 10х10
 def plot_digits_page(
     digits_arr: np.array,
     reshape_pixels: int = 28,
@@ -115,6 +116,7 @@ def plot_homotopy(frm, to, n=10, decoder=None) -> None:
         plot_digits(z)
 
 
+# Решетка, где узлы нормально распледелены в 2д
 def sapmpling_2d_normal_grid(n_count: int) -> Tuple[np.ndarray, np.ndarray]:
     """Sampling 2D Normal Grid.
 
@@ -143,54 +145,7 @@ def sapmpling_2d_normal_grid(n_count: int) -> Tuple[np.ndarray, np.ndarray]:
     return grid_x, grid_y
 
 
-def plot_2d_latent_space(
-    digit_pics, labels, encoded_values, plot_samples: bool = False
-) -> None:
-    """Plot 2D Latent Space.
-
-    Parameters
-    ----------
-    digit_pics : array_like
-        An array of digit images.
-    labels : array_like
-        An array of corresponding digit labels.
-    encoded_values : array_like
-        An array of encoded values.
-    plot_samples : bool, optional (default = False)
-        Whether to plot samples or not.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This function uses Matplotlib to create a scatter plot of the 2D latent space.
-    Optionally, digit samples can also be plotted on the scatter plot.
-    """
-    plt.figure(figsize=(8, 6))
-    cmap = plt.cm.tab10
-    plt.scatter(encoded_values[:, 0], encoded_values[:, 1], c=labels, s=5, cmap=cmap)
-
-    if plot_samples:
-        image_positions = np.array([[1.0, 1.0]])
-        for index, position in enumerate(encoded_values):
-            dist = np.sum((position - image_positions) ** 2, axis=1)
-            if np.min(dist) > 2:  # if far enough from other images
-                image_positions = np.r_[image_positions, [position]]
-                imagebox = mpl.offsetbox.AnnotationBbox(
-                    mpl.offsetbox.OffsetImage(
-                        digit_pics[index], cmap="binary", zoom=0.4
-                    ),
-                    position,
-                    bboxprops={"edgecolor": cmap(labels[index]), "lw": 2},
-                )
-                plt.gca().add_artist(imagebox)
-
-    plt.colorbar()
-    plt.show()
-
-
+# Диаграмма рассеяния 2д латентного пространства
 def plot_2d_latent_space_grid(
     digit_pics: np.ndarray,
     labels: np.ndarray,
@@ -228,10 +183,12 @@ def plot_2d_latent_space_grid(
     figure : Matplotlib Figure
         A Matplotlib Figure object of the scatter plot.
     """
+    # create figure
     plt.figure(figsize=(8, 6))
     cmap = plt.cm.tab10
     plt.scatter(encoded_values[:, 0], encoded_values[:, 1], c=labels, s=5, cmap=cmap)
 
+    # plot grid_x and grid_y
     if plot_grid is True:
         for x in grid_x:
             plt.axvline(x=x, color="grey", alpha=0.8, linewidth=0.7)
@@ -239,6 +196,7 @@ def plot_2d_latent_space_grid(
         for y in grid_y:
             plt.axhline(y=y, color="grey", alpha=0.8, linewidth=0.7)
 
+    # plot boxes with samples
     if plot_samples:
         image_positions = np.array([[1.0, 1.0]])
         for index, position in enumerate(encoded_values):
@@ -254,15 +212,31 @@ def plot_2d_latent_space_grid(
                 )
                 plt.gca().add_artist(imagebox)
 
+    # add color mapping bar to the right
     plt.colorbar()
+
+    # scale and center picture
+    max_value = encoded_values.max()
+    plt.xlim(-1.1 * max_value, 1.1 * max_value)
+    plt.ylim(-1.1 * max_value, 1.1 * max_value)
+
+    # add horizontal and vertical lines
+    plt.axhline(y=0, color="red", alpha=0.7, linewidth=1, linestyle="--")
+    plt.axvline(x=0, color="red", alpha=0.7, linewidth=1, linestyle="--")
+
+    # create figure from it for return
     figure = plt.gcf()
+
+    # show or not to show
     if show:
         plt.show()
     else:
         plt.close()
+
     return figure
 
 
+# Рисует мноообразие цифр для каждого узла сетки в латентн.простр-ве
 def draw_manifold(
     generator,
     grid_x: np.ndarray,
@@ -326,10 +300,38 @@ def draw_manifold(
     return figure
 
 
+# Переводит mpl.Figure в массив-картинку
+def convert_figures_to_array(fig: mpl.figure.Figure) -> np.array:
+    """Convert a Matplotlib figure to a NumPy array.
+
+    Parameters
+    ----------
+    fig : `matplotlib.figure.Figure`
+        The Matplotlib figure to be converted to an array.
+
+    Returns
+    -------
+    array : `numpy.ndarray`
+        The NumPy array representation of the figure.
+
+    Notes
+    -----
+    This function uses `BytesIO` from the `io` module to save the figure to a buffer
+    in PNG format, and then uses `mpimg.imread` to read the buffer and return a
+    NumPy array. The figure is saved with 'tight' bounds.
+    """
+    with io.BytesIO() as buf:
+        fig.savefig(buf, format="png", bbox_inches="tight")
+        buf.seek(0)
+        array = mpimg.imread(buf)
+    return array
+
+
+# Объединяет в 1 картинку две картинки в формате mpl.Figure
 def combine_two_figures_horisontally(
     fig1: mpl.figure.Figure,
     fig2: mpl.figure.Figure,
-    figsize: Tuple[int, int] = (15, 7),
+    figsize: Tuple[int, int] = (10, 5),
     show: bool = True,
 ) -> mpl.figure.Figure:
     """Combine two matplotlib figures horizontally.
@@ -351,21 +353,8 @@ def combine_two_figures_horisontally(
         The combined figure.
     """
 
-    # Convert the figures to arrays
-    canvas1 = mpl.backends.backend_agg.FigureCanvasAgg(fig1)
-    canvas2 = mpl.backends.backend_agg.FigureCanvasAgg(fig2)
-
-    buf1 = io.BytesIO()
-    buf2 = io.BytesIO()
-
-    canvas1.print_png(buf1)
-    canvas2.print_png(buf2)
-
-    buf1.seek(0)
-    buf2.seek(0)
-
-    arr1 = mpimg.imread(buf1)
-    arr2 = mpimg.imread(buf2)
+    arr1 = convert_figures_to_array(fig1)
+    arr2 = convert_figures_to_array(fig2)
 
     # Combine the figures side by side
     fig = plt.figure(figsize=figsize)
@@ -378,6 +367,8 @@ def combine_two_figures_horisontally(
     ax2.axis("off")
     ax2.imshow(arr2)
 
+    plt.tight_layout(pad=0, h_pad=0, w_pad=0)
+
     if show:
         plt.show()
     else:
@@ -385,6 +376,7 @@ def combine_two_figures_horisontally(
     return fig
 
 
+# Создает анимацию из массива картинок
 def create_animation_from_array_of_figures(
     figures_list: List,
     titles_list: List,
