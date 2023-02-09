@@ -376,10 +376,10 @@ def combine_two_figures_horisontally(
     return fig
 
 
-# Создает анимацию из массива картинок
+# Создает анимацию из массива картинок mpl.figure.Figure
 def create_animation_from_array_of_figures(
-    figures_list: List,
-    titles_list: List,
+    figures_list: List[mpl.figure.Figure],
+    titles_list: List[str],
     figsize: Optional[Tuple[int, int]] = None,
     filename: Optional[str] = None,
 ) -> mpl.animation.FuncAnimation:
@@ -402,30 +402,22 @@ def create_animation_from_array_of_figures(
         The animation created from the input figures.
 
     """
+
+    def update(frame):
+        plt.clf()  # Clear the previous plot
+        arr1 = convert_figures_to_array(figures_list[frame])
+        # Recreate the plot with new data
+        plt.imshow(arr1)
+        plt.axis("off")
+        plt.title(str(titles_list[frame]))
+        plt.tight_layout(pad=0, h_pad=0, w_pad=0)
+
     if figsize is not None:
         fig = plt.figure(figsize=figsize)
     else:
         fig = plt.figure()
-    canvas = mpl.backends.backend_agg.FigureCanvasAgg(fig)
 
-    def update(frame):
-        plt.clf()  # Clear the previous plot
-
-        # updating the figure displayed in the canvas
-        # with a new figure from the list of figures
-        # and converting it into a PNG image format in memory
-        # for imshow
-        buf1 = io.BytesIO()
-        canvas.figure = figures_list[frame]
-        canvas.print_png(buf1)
-        buf1.seek(0)
-        arr1 = mpimg.imread(buf1)
-
-        # Recreate the plot with new data
-        plt.imshow(arr1)
-        plt.axis("off")
-        plt.title(titles_list[frame])
-
+    # canvas = mpl.backends.backend_agg.FigureCanvasAgg(fig)
     # Create the animation
     ani = animation.FuncAnimation(
         fig, update, frames=range(len(figures_list)), interval=250
@@ -433,7 +425,9 @@ def create_animation_from_array_of_figures(
 
     # Save the animation as an MP4 file
     if filename is not None:
-        writer = animation.FFMpegWriter(fps=4, bitrate=1800)
+        # writer = animation.FFMpegWriter(fps=4, bitrate=1800)
+        writer = animation.FFMpegWriter(fps=4, bitrate=500)
         ani.save(filename, writer=writer)
 
+    plt.close(fig)
     return ani
